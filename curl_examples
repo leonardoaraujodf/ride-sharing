@@ -1,0 +1,10 @@
+curl 'POST' -v \
+'http://0.0.0.0:8081/trip/preview' \
+-H 'accept: application/json' \
+-H 'Content-Type: application/json' \
+-d '{"userID":"1234", "pickup":{"longitude": 13.388860, "latitude": 52.517037}, "destination": {"longitude":13.397634, "latitude":52.529407}}' 
+
+curl 'GET' -v \
+'http://router.project-osrm.org/route/v1/driving/13.388860,52.517037;13.397634,52.529407?overview=full&geometries=geojson' \
+-H 'accept: application/json' \
+-H 'Content-Type: application/json'
