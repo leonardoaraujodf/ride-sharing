@@ -4,8 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 	"ride-sharing/services/trip-service/internal/domain"
 	"ride-sharing/shared/types"
+	"time"
 )
 
 type HttpHandler struct {
@@ -19,6 +21,10 @@ type previewTripRequest struct {
 }
 
 func (h *HttpHandler) HandleTripPreview(w http.ResponseWriter, r *http.Request) {
+	if os.Getenv("ENABLE_DELAY") == "true" {
+		time.Sleep(3 * time.Second)
+	}
+
 	fmt.Println("Received request for trip preview")
 	var reqBody previewTripRequest
 	if err := json.NewDecoder(r.Body).Decode(&reqBody); err != nil {

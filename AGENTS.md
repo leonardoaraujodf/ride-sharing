@@ -157,6 +157,40 @@ go mod tidy
 
 ---
 
+## Development Workflow
+
+This project follows a test-driven development approach. When fixing bugs or adding features:
+
+1. **Understand existing code** - Read source files to understand current behavior
+2. **Run existing tests first** - Always run `go test ./...` to see current test status
+3. **Analyze failures** - If tests fail, understand WHY they fail before making changes
+4. **Fix through understanding** - Fix the underlying issue, not just the test
+5. **Iterate** - Run tests again after each change until all pass
+6. **Make code testable** - If tests fail due to hardcoded values (e.g., URLs), make them configurable via environment variables
+7. **Use mocks appropriately** - For unit tests, mock external dependencies rather than removing functionality
+
+### Running Tests
+
+```bash
+# Run all unit tests
+go test ./...
+
+# Run integration tests (if available)
+go test -tags=integration ./...
+
+# Run both unit and integration tests
+make test
+```
+
+### Commit Process
+
+After all tests pass:
+1. Run `go vet ./...` to check for issues
+2. Run `gofmt -w .` to format code
+3. Use conventional commit messages
+
+---
+
 ## Notes for Agents
 
 - Always run tests after changes: `go test ./...`

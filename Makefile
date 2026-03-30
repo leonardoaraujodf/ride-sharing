@@ -9,3 +9,8 @@ generate-proto:
 		--go_out=$(GO_OUT) \
 		--go-grpc_out=$(GO_OUT) \
 		$(PROTO_SRC)
+
+.PHONY: test
+test:
+	go test ./...
+	go test -tags=integration ./...

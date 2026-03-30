@@ -4,10 +4,25 @@ import (
 	"bytes"
 	"encoding/json"
 	"net/http"
+	"os"
 	"ride-sharing/shared/contracts"
+	"time"
 )
 
+var tripServiceURL = getTripServiceURL()
+
+func getTripServiceURL() string {
+	if url := os.Getenv("TRIP_SERVICE_URL"); url != "" {
+		return url
+	}
+	return "http://trip-service:8083/preview"
+}
+
 func handleTripPreview(w http.ResponseWriter, r *http.Request) {
+	if os.Getenv("ENABLE_DELAY") == "true" {
+		time.Sleep(2 * time.Second)
+	}
+
 	var reqBody previewTripRequest
 	if err := json.NewDecoder(r.Body).Decode(&reqBody); err != nil {
 		writeJSONError(w, http.StatusBadRequest, "DECODE_ERROR", "failed to parse JSON data")
@@ -24,7 +39,7 @@ func handleTripPreview(w http.ResponseWriter, r *http.Request) {
 	jsonBody, _ := json.Marshal(reqBody)
 	reader := bytes.NewReader(jsonBody)
 
-	resp, err := http.Post("http://trip-service:8083/preview", "application/json", reader)
+	resp, err := http.Post(tripServiceURL, "application/json", reader)
 	if err != nil {
 		writeJSONError(w, http.StatusInternalServerError, "TRIP_SERVICE_ERROR", "failed to call trip service")
 		return
