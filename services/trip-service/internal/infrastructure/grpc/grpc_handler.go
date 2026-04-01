@@ -51,3 +51,10 @@ func (h *gRPCHandler) PreviewTrip(ctx context.Context, req *pb.PreviewTripReques
 		RideFares: []*pb.RideFare{},
 	}, nil
 }
+
+func (h *gRPCHandler) StartTrip(ctx context.Context, req *pb.CreateTripRequest) (*pb.CreateTripResponse, error) {
+	fmt.Printf("Received StartTrip request: %v\n", req)
+	return &pb.CreateTripResponse{
+		TripId: "dummy_trip_id",
+	}, nil
+}
