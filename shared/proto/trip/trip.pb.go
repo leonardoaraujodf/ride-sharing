@@ -302,7 +302,7 @@ type RideFare struct {
 	Id                string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	UserId            string                 `protobuf:"bytes,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	PackageSlug       string                 `protobuf:"bytes,3,opt,name=package_slug,json=packageSlug,proto3" json:"package_slug,omitempty"`
-	TotalPriceInCents string                 `protobuf:"bytes,4,opt,name=total_price_in_cents,json=totalPriceInCents,proto3" json:"total_price_in_cents,omitempty"`
+	TotalPriceInCents float64                `protobuf:"fixed64,4,opt,name=total_price_in_cents,json=totalPriceInCents,proto3" json:"total_price_in_cents,omitempty"`
 	unknownFields     protoimpl.UnknownFields
 	sizeCache         protoimpl.SizeCache
 }
@@ -358,11 +358,11 @@ func (x *RideFare) GetPackageSlug() string {
 	return ""
 }
 
-func (x *RideFare) GetTotalPriceInCents() string {
+func (x *RideFare) GetTotalPriceInCents() float64 {
 	if x != nil {
 		return x.TotalPriceInCents
 	}
-	return ""
+	return 0
 }
 
 type CreateTripRequest struct {
@@ -490,7 +490,7 @@ const file_trip_proto_rawDesc = "" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x17\n" +
 	"\auser_id\x18\x02 \x01(\tR\x06userId\x12!\n" +
 	"\fpackage_slug\x18\x03 \x01(\tR\vpackageSlug\x12/\n" +
-	"\x14total_price_in_cents\x18\x04 \x01(\tR\x11totalPriceInCents\"N\n" +
+	"\x14total_price_in_cents\x18\x04 \x01(\x01R\x11totalPriceInCents\"N\n" +
 	"\x11CreateTripRequest\x12 \n" +
 	"\fride_fare_id\x18\x01 \x01(\tR\n" +
 	"rideFareId\x12\x17\n" +
