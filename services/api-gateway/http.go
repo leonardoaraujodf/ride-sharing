@@ -59,7 +59,7 @@ func handleTripPreview(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleTripStart(w http.ResponseWriter, r *http.Request) {
-	var reqBody startTripRequest
+	var reqBody createTripRequest
 	if err := json.NewDecoder(r.Body).Decode(&reqBody); err != nil {
 		writeJSONError(w, http.StatusBadRequest, "DECODE_ERROR", "failed to parse JSON data")
 		return
@@ -78,10 +78,10 @@ func handleTripStart(w http.ResponseWriter, r *http.Request) {
 
 	defer tripService.Close()
 
-	trip, err := tripService.Client.StartTrip(r.Context(), reqBody.toProto())
+	trip, err := tripService.Client.CreateTrip(r.Context(), reqBody.toProto())
 	if err != nil {
-		log.Printf("Failed to start a trip: %v", err)
-		http.Error(w, "Failed to start a trip", http.StatusInternalServerError)
+		log.Printf("Failed to create a trip: %v", err)
+		http.Error(w, "Failed to create a trip", http.StatusInternalServerError)
 		return
 	}
 
