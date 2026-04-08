@@ -72,9 +72,9 @@ k8s_yaml('./infra/development/k8s/trip-service-deployment.yaml')
 k8s_resource('trip-service', resource_deps=['trip-service-compile'], labels="services")
 
 ### End of Trip Service ###
-### Driver Service ###
 
-driver_compile_cmd = 'CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o build/driver-service ./services/driver-service/main.go'
+### Driver Service ###
+driver_compile_cmd = 'CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o build/driver-service ./services/driver-service/'
 if os.name == 'nt':
  driver_compile_cmd = './infra/development/docker/driver-build.bat'
 
