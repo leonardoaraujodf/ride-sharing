@@ -12,6 +12,7 @@ import * as Geohash from 'ngeohash';
 import { RoutingControl } from "./RoutingControl";
 import { DriverCard } from "./DriverCard";
 import { TripEvents } from "../contracts";
+import { generateUUID } from "../constants";
 
 const START_LOCATION: Coordinate = {
   latitude: 37.7749,
@@ -19,26 +20,26 @@ const START_LOCATION: Coordinate = {
 }
 
 const driverMarker = new L.Icon({
-  iconUrl: "https://www.svgrepo.com/show/25407/car.svg",
+  iconUrl: "/icons/car.svg",
   iconSize: [30, 30],
   iconAnchor: [15, 30],
 });
 
 const startLocationMarker = new L.Icon({
-  iconUrl: "https://www.svgrepo.com/show/535711/user.svg",
+  iconUrl: "/icons/user.svg",
   iconSize: [30, 40], // Size of the marker
   iconAnchor: [20, 40], // Anchor point
 });
 
 const destinationMarker = new L.Icon({
-  iconUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ed/Map_pin_icon.svg/176px-Map_pin_icon.svg.png",
+  iconUrl: "/icons/map-pin.svg",
   iconSize: [40, 40], // Size of the marker
   iconAnchor: [20, 40], // Anchor point
 });
 
 export const DriverMap = ({ packageSlug }: { packageSlug: CarPackageSlug }) => {
   const mapRef = useRef<L.Map>(null)
-  const userID = useMemo(() => crypto.randomUUID(), [])
+  const userID = useMemo(() => generateUUID(), [])
   const [riderLocation, setRiderLocation] = useState<Coordinate>(START_LOCATION)
 
   const driverGeohash = useMemo(() =>

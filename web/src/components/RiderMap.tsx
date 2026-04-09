@@ -10,18 +10,18 @@ import { MapClickHandler } from './MapClickHandler';
 import { Button } from './ui/button';
 import { RouteFare, RequestRideProps, TripPreview, HTTPTripStartResponse } from "../types";
 import { RoutingControl } from "./RoutingControl";
-import { API_URL } from '../constants';
+import { API_URL, generateUUID } from '../constants';
 import { RiderTripOverview } from './RiderTripOverview';
 import { BackendEndpoints, HTTPTripPreviewRequestPayload, HTTPTripPreviewResponse, HTTPTripStartRequestPayload } from '../contracts';
 
 const userMarker = new L.Icon({
-    iconUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ed/Map_pin_icon.svg/176px-Map_pin_icon.svg.png",
-    iconSize: [40, 40], // Size of the marker
-    iconAnchor: [20, 40], // Anchor point
+    iconUrl: "/icons/map-pin.svg",
+    iconSize: [40, 40],
+    iconAnchor: [20, 40],
 });
 
 const driverMarker = new L.Icon({
-    iconUrl: "https://www.svgrepo.com/show/25407/car.svg",
+    iconUrl: "/icons/car.svg",
     iconSize: [30, 30],
     iconAnchor: [15, 30],
 });
@@ -35,7 +35,7 @@ export default function RiderMap({ onRouteSelected }: RiderMapProps) {
     const [selectedCarPackage] = useState<RouteFare | null>(null)
     const [destination, setDestination] = useState<[number, number] | null>(null)
     const mapRef = useRef<L.Map>(null)
-    const userID = useMemo(() => crypto.randomUUID(), [])
+    const userID = useMemo(() => generateUUID(), [])
     const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     const location = {
