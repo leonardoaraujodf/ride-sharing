@@ -32,7 +32,7 @@ const startLocationMarker = new L.Icon({
 });
 
 const destinationMarker = new L.Icon({
-  iconUrl: "/icons/map-pin.svg",
+  iconUrl: "/icons/pin.png",
   iconSize: [40, 40], // Size of the marker
   iconAnchor: [20, 40], // Anchor point
 });

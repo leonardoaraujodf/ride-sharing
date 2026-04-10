@@ -15,6 +15,7 @@ spec:
       containers:
         - name: api-gateway
           image: ride-sharing/api-gateway
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8081
           resources:

@@ -15,7 +15,7 @@ import { RiderTripOverview } from './RiderTripOverview';
 import { BackendEndpoints, HTTPTripPreviewRequestPayload, HTTPTripPreviewResponse, HTTPTripStartRequestPayload } from '../contracts';
 
 const userMarker = new L.Icon({
-    iconUrl: "/icons/map-pin.svg",
+    iconUrl: "/icons/pin.png",
     iconSize: [40, 40],
     iconAnchor: [20, 40],
 });
