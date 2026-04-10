@@ -1,5 +1,4 @@
-# Load the restart_process extension
-load('ext://restart_process', 'docker_build_with_restart')
+allow_k8s_contexts('kind-kind')
 
 ### K8s Config ###
 
@@ -26,18 +25,15 @@ local_resource(
   deps=['./services/api-gateway', './shared'], labels="compiles")
 
 
-docker_build_with_restart(
+custom_build(
   'ride-sharing/api-gateway',
-  '.',
-  entrypoint=['/app/build/api-gateway'],
-  dockerfile='./infra/development/docker/api-gateway.Dockerfile',
-  only=[
-    './build/api-gateway',
-    './shared',
-  ],
+  'podman build -t docker.io/$EXPECTED_REF -f ./infra/development/docker/api-gateway.Dockerfile . && podman save docker.io/$EXPECTED_REF | podman exec -i kind-control-plane ctr -n k8s.io images import -',
+  ['./build/api-gateway', './shared'],
+  skips_local_docker=True,
   live_update=[
-    sync('./build', '/app/build'),
+    sync('./build/api-gateway', '/app/build/api-gateway'),
     sync('./shared', '/app/shared'),
+    run('kill 1'),
   ],
 )
 
@@ -58,18 +54,15 @@ local_resource(
   trip_compile_cmd,
   deps=['./services/trip-service', './shared'], labels="compiles")
 
-docker_build_with_restart(
+custom_build(
   'ride-sharing/trip-service',
-  '.',
-  entrypoint=['/app/build/trip-service'],
-  dockerfile='./infra/development/docker/trip-service.Dockerfile',
-  only=[
-    './build/trip-service',
-    './shared',
-  ],
+  'podman build -t docker.io/$EXPECTED_REF -f ./infra/development/docker/trip-service.Dockerfile . && podman save docker.io/$EXPECTED_REF | podman exec -i kind-control-plane ctr -n k8s.io images import -',
+  ['./build/trip-service', './shared'],
+  skips_local_docker=True,
   live_update=[
-    sync('./build', '/app/build'),
+    sync('./build/trip-service', '/app/build/trip-service'),
     sync('./shared', '/app/shared'),
+    run('kill 1'),
   ],
 )
 
@@ -88,18 +81,15 @@ local_resource(
   driver_compile_cmd,
   deps=['./services/driver-service', './shared'], labels="compiles")
 
-docker_build_with_restart(
+custom_build(
   'ride-sharing/driver-service',
-  '.',
-  entrypoint=['/app/build/driver-service'],
-  dockerfile='./infra/development/docker/driver-service.Dockerfile',
-  only=[
-    './build/driver-service',
-    './shared',
-  ],
+  'podman build -t docker.io/$EXPECTED_REF -f ./infra/development/docker/driver-service.Dockerfile . && podman save docker.io/$EXPECTED_REF | podman exec -i kind-control-plane ctr -n k8s.io images import -',
+  ['./build/driver-service', './shared'],
+  skips_local_docker=True,
   live_update=[
-    sync('./build', '/app/build'),
+    sync('./build/driver-service', '/app/build/driver-service'),
     sync('./shared', '/app/shared'),
+    run('kill 1'),
   ],
 )
 
@@ -109,10 +99,11 @@ k8s_resource('driver-service', resource_deps=['driver-service-compile', 'rabbitm
 ### End of Driver Service ###
 ### Web Frontend ###
 
-docker_build(
+custom_build(
   'ride-sharing/web',
-  '.',
-  dockerfile='./infra/development/docker/web.Dockerfile',
+  'podman build -t docker.io/$EXPECTED_REF -f ./infra/development/docker/web.Dockerfile . && podman save docker.io/$EXPECTED_REF | podman exec -i kind-control-plane ctr -n k8s.io images import -',
+  ['./web'],
+  skips_local_docker=True,
 )
 
 k8s_yaml('./infra/development/k8s/web-deployment.yaml')
