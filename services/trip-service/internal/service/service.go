@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
+
 	"ride-sharing/services/trip-service/internal/domain"
 	tripTypes "ride-sharing/services/trip-service/pkg/types"
 	"ride-sharing/shared/proto/trip"
@@ -15,11 +17,12 @@ import (
 )
 
 type service struct {
-	repo domain.TripRepository
+	repo      domain.TripRepository
+	orsAPIKey string
 }
 
-func NewService(repo domain.TripRepository) *service {
-	return &service{repo: repo}
+func NewService(repo domain.TripRepository, orsAPIKey string) *service {
+	return &service{repo: repo, orsAPIKey: orsAPIKey}
 }
 
 func (s *service) CreateTrip(ctx context.Context, fare *domain.RideFareModel) (*domain.TripModel, error) {
@@ -38,30 +41,40 @@ func (s *service) CreateTrip(ctx context.Context, fare *domain.RideFareModel) (*
 }
 
 func (s *service) GetRoute(ctx context.Context, pickup, destination *types.Coordinate) (*tripTypes.OsrmApiResponse, error) {
-	url := fmt.Sprintf("http://router.project-osrm.org/route/v1/driving/%f,%f;%f,%f?overview=full&geometries=geojson",
+	const orsURL = "https://api.openrouteservice.org/v2/directions/driving-car/geojson"
+
+	payload := fmt.Sprintf(`{"coordinates":[[%f,%f],[%f,%f]]}`,
 		pickup.Longitude, pickup.Latitude,
 		destination.Longitude, destination.Latitude)
 
-	fmt.Printf("URL used: %s\n", url)
-
-	resp, err := http.Get(url)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, orsURL, strings.NewReader(payload))
 	if err != nil {
-		return nil, fmt.Errorf("failed to fetch route from OSRM API: %v", err)
+		return nil, fmt.Errorf("failed to create ORS request: %v", err)
+	}
+	req.Header.Set("Authorization", s.orsAPIKey)
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch route from ORS API: %v", err)
 	}
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return nil, fmt.Errorf("failed to read the response: %v", err)
+		return nil, fmt.Errorf("failed to read ORS response: %v", err)
 	}
 
-	fmt.Printf("Body: %s", body)
-	var routeResp tripTypes.OsrmApiResponse
-	if err := json.Unmarshal(body, &routeResp); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal OSRM response: %v", err)
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("ORS API returned status %d: %s", resp.StatusCode, body)
 	}
 
-	return &routeResp, nil
+	var orsResp tripTypes.OrsApiResponse
+	if err := json.Unmarshal(body, &orsResp); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal ORS response: %v", err)
+	}
+
+	return orsResp.ToOsrmApiResponse(), nil
 }
 
 func (s *service) EstimatePackagesPriceWithRoute(route *tripTypes.OsrmApiResponse) []*domain.RideFareModel {

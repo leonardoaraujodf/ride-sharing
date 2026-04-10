@@ -12,6 +12,43 @@ type OsrmApiResponse struct {
 	} `json:"routes"`
 }
 
+type OrsApiResponse struct {
+	Features []struct {
+		Properties struct {
+			Summary struct {
+				Distance float64 `json:"distance"`
+				Duration float64 `json:"duration"`
+			} `json:"summary"`
+		} `json:"properties"`
+		Geometry struct {
+			Coordinates [][]float64 `json:"coordinates"`
+		} `json:"geometry"`
+	} `json:"features"`
+}
+
+func (o *OrsApiResponse) ToOsrmApiResponse() *OsrmApiResponse {
+	f := o.Features[0]
+	return &OsrmApiResponse{
+		Routes: []struct {
+			Distance float64 `json:"distance"`
+			Duration float64 `json:"duration"`
+			Geometry struct {
+				Coordinates [][]float64 `json:"coordinates"`
+			} `json:"geometry"`
+		}{
+			{
+				Distance: f.Properties.Summary.Distance,
+				Duration: f.Properties.Summary.Duration,
+				Geometry: struct {
+					Coordinates [][]float64 `json:"coordinates"`
+				}{
+					Coordinates: f.Geometry.Coordinates,
+				},
+			},
+		},
+	}
+}
+
 func (o *OsrmApiResponse) ToProto() *pb.Route {
 	route := o.Routes[0]
 	geometry := route.Geometry.Coordinates

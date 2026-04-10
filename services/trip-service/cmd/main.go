@@ -21,8 +21,9 @@ var GrpcAddr = ":9093"
 
 func main() {
 	rabbitMqURI := env.GetString("RABBITMQ_URI", "amqp://guest:guest@rabbitmq:5672/")
+	orsAPIKey := env.GetString("ORS_API_KEY", "")
 	inmemRepo := repository.NewInmemRepository()
-	srv := service.NewService(inmemRepo)
+	srv := service.NewService(inmemRepo, orsAPIKey)
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 

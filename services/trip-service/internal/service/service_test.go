@@ -27,7 +27,7 @@ func (m *mockTripRepository) CreateTrip(ctx context.Context, trip *domain.TripMo
 func TestCreateTrip_Success(t *testing.T) {
 	ctx := context.Background()
 	mockRepo := &mockTripRepository{trips: make(map[string]*domain.TripModel)}
-	svc := NewService(mockRepo)
+	svc := NewService(mockRepo, "")
 
 	fare := &domain.RideFareModel{
 		ID:                primitive.NewObjectID(),
@@ -66,7 +66,7 @@ func TestCreateTrip_RepositoryError(t *testing.T) {
 		trips: make(map[string]*domain.TripModel),
 		err:   errors.New("database error"),
 	}
-	svc := NewService(mockRepo)
+	svc := NewService(mockRepo, "")
 
 	fare := &domain.RideFareModel{
 		ID:        primitive.NewObjectID(),
