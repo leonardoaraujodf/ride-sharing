@@ -45,7 +45,7 @@ func main() {
 	grpcServer := grpcserver.NewServer()
 	NewGrpcHandler(grpcServer, svc)
 
-	consumer := NewTripConsumer(rabbitmq)
+	consumer := NewTripConsumer(rabbitmq, svc)
 	if err := consumer.Listen(); err != nil {
 		log.Fatalf("Failed to register queue consumer: %v", err)
 	}

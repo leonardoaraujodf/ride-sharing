@@ -12,6 +12,8 @@ spec:
       labels:
         app: trip-service
     spec:
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
       containers:
         - name: trip-service
           image: ride-sharing/trip-service
