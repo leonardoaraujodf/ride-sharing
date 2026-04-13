@@ -10,6 +10,7 @@ type QueueConsumer struct {
 	rb        *RabbitMQ
 	connMng   *ConnectionManager
 	queueName string
+	transform func(routingKey string, data []byte) (any, error)
 }
 
 func NewQueueConsumer(rb *RabbitMQ, connMngr *ConnectionManager, queueName string) *QueueConsumer {
@@ -17,6 +18,15 @@ func NewQueueConsumer(rb *RabbitMQ, connMngr *ConnectionManager, queueName strin
 		rb:        rb,
 		connMng:   connMngr,
 		queueName: queueName,
+	}
+}
+
+func NewQueueConsumerWithTransform(rb *RabbitMQ, connMngr *ConnectionManager, queueName string, transform func(routingKey string, data []byte) (any, error)) *QueueConsumer {
+	return &QueueConsumer{
+		rb:        rb,
+		connMng:   connMngr,
+		queueName: queueName,
+		transform: transform,
 	}
 }
 
@@ -45,9 +55,17 @@ func (qc *QueueConsumer) Start() error {
 
 			var payload any
 			if msgBody.Data != nil {
-				if err := json.Unmarshal(msgBody.Data, &payload); err != nil {
-					log.Println("Failed to unmarshal payload:", err)
-					continue
+				if qc.transform != nil {
+					payload, err = qc.transform(msg.RoutingKey, msgBody.Data)
+					if err != nil {
+						log.Println("Failed to transform payload:", err)
+						continue
+					}
+				} else {
+					if err := json.Unmarshal(msgBody.Data, &payload); err != nil {
+						log.Println("Failed to unmarshal payload:", err)
+						continue
+					}
 				}
 			}
 

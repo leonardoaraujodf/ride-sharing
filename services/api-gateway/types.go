@@ -1,6 +1,7 @@
 package main
 
 import (
+	pbDriver "ride-sharing/shared/proto/driver"
 	pb "ride-sharing/shared/proto/trip"
 	"ride-sharing/shared/types"
 )
@@ -103,5 +104,106 @@ func (s *createTripRequest) toProto() *pb.CreateTripRequest {
 	return &pb.CreateTripRequest{
 		UserId:     s.UserID,
 		RideFareId: s.RideFareID,
+	}
+}
+
+// driverWsResponse is the camelCase DTO sent to the driver WebSocket on registration.
+type driverWsResponse struct {
+	ID             string             `json:"id"`
+	Name           string             `json:"name"`
+	ProfilePicture string             `json:"profilePicture"`
+	CarPlate       string             `json:"carPlate"`
+	GeoHash        string             `json:"geohash"`
+	Location       coordinateResponse `json:"location"`
+}
+
+func toDriverWsResponse(d *pbDriver.Driver) driverWsResponse {
+	loc := coordinateResponse{}
+	if d.Location != nil {
+		loc = coordinateResponse{Latitude: d.Location.Latitude, Longitude: d.Location.Longitude}
+	}
+	return driverWsResponse{
+		ID:             d.Id,
+		Name:           d.Name,
+		ProfilePicture: d.ProfilePicture,
+		CarPlate:       d.CarPlate,
+		GeoHash:        d.GeoHash,
+		Location:       loc,
+	}
+}
+
+// tripDriverWsResponse is the camelCase DTO for the driver nested inside a trip.
+type tripDriverWsResponse struct {
+	ID             string `json:"id"`
+	Name           string `json:"name"`
+	ProfilePicture string `json:"profilePicture"`
+	CarPlate       string `json:"carPlate"`
+}
+
+// tripWsResponse is the camelCase DTO for a trip sent via WebSocket.
+type tripWsResponse struct {
+	ID           string                `json:"id"`
+	UserID       string                `json:"userID"`
+	Status       string                `json:"status"`
+	SelectedFare rideFareResponse      `json:"selectedFare"`
+	Route        routeResponse         `json:"route"`
+	Driver       *tripDriverWsResponse `json:"driver,omitempty"`
+}
+
+// tripWsPayload wraps the trip in the envelope the frontend expects.
+type tripWsPayload struct {
+	Trip tripWsResponse `json:"trip"`
+}
+
+func toTripWsPayload(t *pb.Trip) tripWsPayload {
+	fare := rideFareResponse{}
+	if t.SelectedFare != nil {
+		fare = rideFareResponse{
+			ID:                t.SelectedFare.Id,
+			PackageSlug:       t.SelectedFare.PackageSlug,
+			TotalPriceInCents: t.SelectedFare.TotalPriceInCents,
+		}
+	}
+
+	geometries := []geometryResponse{}
+	if t.Route != nil {
+		geometries = make([]geometryResponse, len(t.Route.Geometry))
+		for i, g := range t.Route.Geometry {
+			coords := make([]coordinateResponse, len(g.Coordinates))
+			for j, c := range g.Coordinates {
+				coords[j] = coordinateResponse{Latitude: c.Latitude, Longitude: c.Longitude}
+			}
+			geometries[i] = geometryResponse{Coordinates: coords}
+		}
+	}
+
+	route := routeResponse{}
+	if t.Route != nil {
+		route = routeResponse{
+			Geometry: geometries,
+			Distance: t.Route.Distance,
+			Duration: t.Route.Duration,
+		}
+	}
+
+	var driver *tripDriverWsResponse
+	if t.Driver != nil {
+		driver = &tripDriverWsResponse{
+			ID:             t.Driver.Id,
+			Name:           t.Driver.Name,
+			ProfilePicture: t.Driver.ProfilePicture,
+			CarPlate:       t.Driver.CarPlate,
+		}
+	}
+
+	return tripWsPayload{
+		Trip: tripWsResponse{
+			ID:           t.Id,
+			UserID:       t.UserId,
+			Status:       t.Status,
+			SelectedFare: fare,
+			Route:        route,
+			Driver:       driver,
+		},
 	}
 }
