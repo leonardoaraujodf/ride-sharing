@@ -42,6 +42,11 @@ spec:
                 configMapKeyRef:
                   key: DRIVER_SERVICE_URL
                   name: app-config
+            - name: RABBITMQ_URI
+              valueFrom:
+                secretKeyRef:
+                  key: rabbitmq-credentials
+                  name: uri
 ---
 apiVersion: v1
 kind: Service
