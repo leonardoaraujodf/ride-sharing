@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"log"
+	"math/rand"
 	"ride-sharing/shared/contracts"
 	"ride-sharing/shared/messaging"
 
@@ -62,7 +63,15 @@ func (c *tripConsumer) handlerFindAndNotifyDriver(ctx context.Context, payload m
 		return nil
 	}
 
-	suitableDriverID := suitableIDs[0]
+	// TODO: This is probably not the best approach.
+	// If a driver has just refused to get a trip, there is a good chance
+	// that the same driver will be notified again by the same trip. This should be prevented by some way
+	// for example, the driver that refused the trip will receive notification about the same trip
+	// after 2 min. The algorithm here needs improvement
+
+	// Get a random index from the matching drivers
+	randomIndex := rand.Intn(len(suitableIDs))
+	suitableDriverID := suitableIDs[randomIndex]
 	marshalledEvent, err := json.Marshal(payload)
 	if err != nil {
 		return err
