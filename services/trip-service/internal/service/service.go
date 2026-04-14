@@ -13,6 +13,8 @@ import (
 	"ride-sharing/shared/proto/trip"
 	"ride-sharing/shared/types"
 
+	pbd "ride-sharing/shared/proto/driver"
+
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -162,4 +164,11 @@ func estimateFareRoute(f *domain.RideFareModel, route *tripTypes.OsrmApiResponse
 		PackageSlug:       f.PackageSlug,
 		TotalPriceInCents: totalPrice,
 	}
+}
+func (s *service) GetTripByID(ctx context.Context, id string) (*domain.TripModel, error) {
+	return s.repo.GetTripByID(ctx, id)
+}
+
+func (s *service) UpdateTrip(ctx context.Context, tripID string, status string, driver *pbd.Driver) error {
+	return s.repo.UpdateTrip(ctx, tripID, status, driver)
 }

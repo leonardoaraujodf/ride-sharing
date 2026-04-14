@@ -53,6 +53,11 @@ func main() {
 
 	grpc.NewGRPCHandler(grpcServer, srv, publisher)
 
+	consumer := events.NewDriverConsumer(rabbitmq, srv)
+	if err := consumer.Listen(); err != nil {
+		log.Fatalf("Failed to register queue consumer: %v", err)
+	}
+
 	log.Printf("Starting gRPC server trip-service on port %s", GrpcAddr)
 	go func() {
 		if err := grpcServer.Serve(lis); err != nil {
