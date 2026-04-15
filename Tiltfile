@@ -110,3 +110,31 @@ k8s_yaml('./infra/development/k8s/web-deployment.yaml')
 k8s_resource('web', port_forwards=3000, labels="frontend")
 
 ### End of Web Frontend ###
+
+### Payment Service ###
+
+payment_compile_cmd = 'CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o build/payment-service ./services/payment-service/cmd/main.go'
+if os.name == 'nt':
+  payment_compile_cmd = './infra/development/docker/payment-build.bat'
+
+local_resource(
+  'payment-service-compile',
+  payment_compile_cmd,
+  deps=['./services/payment-service', './shared'], labels="compiles")
+
+custom_build(
+  'ride-sharing/payment-service',
+  'podman build -t docker.io/$EXPECTED_REF -f ./infra/development/docker/payment-service.Dockerfile . && podman save docker.io/$EXPECTED_REF | podman exec -i kind-control-plane ctr -n k8s.io images import -',
+  ['./build/payment-service', './shared'],
+  skips_local_docker=True,
+  live_update=[
+    sync('./build/payment-service', '/app/build/payment-service'),
+    sync('./shared', '/app/shared'),
+    run("kill 1")
+  ],
+)
+
+k8s_yaml('./infra/development/k8s/payment-service-deployment.yaml')
+k8s_resource('payment-service', resource_deps=['payment-service-compile', 'rabbitmq'], labels="services")
+
+### End of Payment Service ###
