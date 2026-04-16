@@ -64,11 +64,13 @@ func (r *inmemRepository) UpdateTrip(ctx context.Context, tripID string, status 
 		return fmt.Errorf("trip does not exist with ID: %s", tripID)
 	}
 	trip.Status = status
-	trip.Driver = &pb.TripDriver{
-		Id:             driver.Id,
-		Name:           driver.Name,
-		ProfilePicture: driver.ProfilePicture,
-		CarPlate:       driver.CarPlate,
+	if driver != nil {
+		trip.Driver = &pb.TripDriver{
+			Id:             driver.Id,
+			Name:           driver.Name,
+			ProfilePicture: driver.ProfilePicture,
+			CarPlate:       driver.CarPlate,
+		}
 	}
 	return nil
 }
