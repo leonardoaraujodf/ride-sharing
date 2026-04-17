@@ -239,3 +239,13 @@ https://<IP_ADDRESS>
 Note: Since this is using a self-signed certificate, browsers will show a security warning. This is normal and expected. You can:
 Accept the warning in your browser (not recommended for production)
 Use a proper domain name (recommended for production)
+
+## Using stripe CLI
+
+To use strip webhooks, use the following command:
+
+```sh
+stripe listen --forward-to localhost:8081/webhook/stripe
+```
+
+The strip CLI will generate a webhook key that is used by the key STRIPE_WEBHOOK_KEY on the api-gateway service.

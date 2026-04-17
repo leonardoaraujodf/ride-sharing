@@ -12,6 +12,7 @@ import (
 	"ride-sharing/services/trip-service/internal/service"
 	"ride-sharing/shared/env"
 	"ride-sharing/shared/messaging"
+	"ride-sharing/shared/tracing"
 	"syscall"
 
 	grpcserver "google.golang.org/grpc"
@@ -20,12 +21,24 @@ import (
 var GrpcAddr = ":9093"
 
 func main() {
-	rabbitMqURI := env.GetString("RABBITMQ_URI", "amqp://guest:guest@rabbitmq:5672/")
+	// Initialize Tracing
+	tracerCfg := tracing.Config{
+		ServiceName:    "trip-service",
+		Environment:    env.GetString("ENVIRONMENT", "development"),
+		JaegerEndpoint: env.GetString("JAEGER_ENDPOINT", "http://jaeger:14268/api/traces"),
+	}
+
+	sh, err := tracing.InitTracer(tracerCfg)
+	if err != nil {
+		log.Fatalf("Failed to initialize the tracer: %v", err)
+	}
+
 	orsAPIKey := env.GetString("ORS_API_KEY", "")
 	inmemRepo := repository.NewInmemRepository()
 	srv := service.NewService(inmemRepo, orsAPIKey)
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
+	defer sh(ctx)
 
 	go func() {
 		sigCh := make(chan os.Signal, 1)
@@ -40,6 +53,7 @@ func main() {
 	}
 
 	// RabbitMQ connection
+	rabbitMqURI := env.GetString("RABBITMQ_URI", "amqp://guest:guest@rabbitmq:5672/")
 	rabbitmq, err := messaging.NewRabbitMQ(rabbitMqURI)
 	if err != nil {
 		log.Fatal(err)

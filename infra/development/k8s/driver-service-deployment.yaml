@@ -36,6 +36,11 @@ spec:
                 secretKeyRef:
                   name: ors-credentials
                   key: api-key
+            - name: JAEGER_ENDPOINT
+              valueFrom:
+                configMapKeyRef:
+                  key: JAEGER_ENDPOINT
+                  name: app-config
 ---
 apiVersion: v1
 kind: Service
