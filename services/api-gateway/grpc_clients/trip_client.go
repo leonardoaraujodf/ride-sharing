@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	pb "ride-sharing/shared/proto/trip"
+	"ride-sharing/shared/tracing"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -21,7 +22,12 @@ func NewTripServiceClient() (*tripServiceClient, error) {
 	}
 	fmt.Printf("Connecting to Trip Service at %s\n", tripServiceURL)
 
-	conn, err := grpc.NewClient(tripServiceURL, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	dialOptions := append(
+		tracing.DialOptionsWithTracing(),
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+	)
+
+	conn, err := grpc.NewClient(tripServiceURL, dialOptions...)
 	if err != nil {
 		return nil, err
 	}

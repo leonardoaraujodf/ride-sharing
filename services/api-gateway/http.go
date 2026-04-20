@@ -10,6 +10,7 @@ import (
 	"ride-sharing/shared/contracts"
 	"ride-sharing/shared/env"
 	"ride-sharing/shared/messaging"
+	"ride-sharing/shared/tracing"
 	"time"
 
 	"github.com/stripe/stripe-go/v81"
@@ -17,6 +18,8 @@ import (
 )
 
 var tripServiceURL = getTripServiceURL()
+
+var tracer = tracing.GetTracer("api-gateway")
 
 func getTripServiceURL() string {
 	if url := os.Getenv("TRIP_SERVICE_URL"); url != "" {
@@ -26,6 +29,9 @@ func getTripServiceURL() string {
 }
 
 func handleStripeWebhook(w http.ResponseWriter, r *http.Request, rabbitmq *messaging.RabbitMQ) {
+	ctx, span := tracer.Start(r.Context(), "handleStripeWebhook")
+	defer span.End()
+
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		http.Error(w, "Failed to read request body", http.StatusBadRequest)
@@ -83,7 +89,7 @@ func handleStripeWebhook(w http.ResponseWriter, r *http.Request, rabbitmq *messa
 		}
 
 		if err := rabbitmq.PublishMessage(
-			r.Context(),
+			ctx,
 			contracts.PaymentEventSuccess,
 			message,
 		); err != nil {
@@ -95,6 +101,9 @@ func handleStripeWebhook(w http.ResponseWriter, r *http.Request, rabbitmq *messa
 }
 
 func handleTripPreview(w http.ResponseWriter, r *http.Request) {
+	ctx, span := tracer.Start(r.Context(), "handleTripPreview")
+	defer span.End()
+
 	if os.Getenv("ENABLE_DELAY") == "true" {
 		time.Sleep(2 * time.Second)
 	}
@@ -122,7 +131,7 @@ func handleTripPreview(w http.ResponseWriter, r *http.Request) {
 
 	defer tripService.Close()
 
-	tripPreview, err := tripService.Client.PreviewTrip(r.Context(), reqBody.toProto())
+	tripPreview, err := tripService.Client.PreviewTrip(ctx, reqBody.toProto())
 	if err != nil {
 		log.Printf("Failed to preview a trip: %v", err)
 		http.Error(w, "Failed to preview a trip", http.StatusInternalServerError)
@@ -134,6 +143,9 @@ func handleTripPreview(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleTripStart(w http.ResponseWriter, r *http.Request) {
+	ctx, span := tracer.Start(r.Context(), "handleTripStart")
+	defer span.End()
+
 	var reqBody createTripRequest
 	if err := json.NewDecoder(r.Body).Decode(&reqBody); err != nil {
 		writeJSONError(w, http.StatusBadRequest, "DECODE_ERROR", "failed to parse JSON data")
@@ -153,7 +165,7 @@ func handleTripStart(w http.ResponseWriter, r *http.Request) {
 
 	defer tripService.Close()
 
-	trip, err := tripService.Client.CreateTrip(r.Context(), reqBody.toProto())
+	trip, err := tripService.Client.CreateTrip(ctx, reqBody.toProto())
 	if err != nil {
 		log.Printf("Failed to create a trip: %v", err)
 		http.Error(w, "Failed to create a trip", http.StatusInternalServerError)

@@ -63,7 +63,7 @@ func main() {
 	publisher := events.NewTripEventPublisher(rabbitmq)
 
 	// Starting the gRPC server
-	grpcServer := grpcserver.NewServer()
+	grpcServer := grpcserver.NewServer(tracing.WithTracingInterceptors()...)
 
 	grpc.NewGRPCHandler(grpcServer, srv, publisher)
 

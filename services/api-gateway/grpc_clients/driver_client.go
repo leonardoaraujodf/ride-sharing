@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	pb "ride-sharing/shared/proto/driver"
+	"ride-sharing/shared/tracing"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -21,7 +22,12 @@ func NewDriverServiceClient() (*driverServiceClient, error) {
 	}
 	fmt.Printf("Connecting to driver service at %s\n", driverServiceURL)
 
-	conn, err := grpc.NewClient(driverServiceURL, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	dialOptions := append(
+		tracing.DialOptionsWithTracing(),
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+	)
+
+	conn, err := grpc.NewClient(driverServiceURL, dialOptions...)
 	if err != nil {
 		return nil, err
 	}
